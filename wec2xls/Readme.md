@@ -9,4 +9,4 @@ It is invoved by passing it WEC's *inspection-log.ndjson* and an optional output
 
 The resulting xlsx file will look similar to the following screenshot (made using LibreOffice):
 
-![LibreOffice Screenshot](/screenshot.png?raw=true)
+![LibreOffice Screenshot](/wec2xls/screenshot.png?raw=true)
