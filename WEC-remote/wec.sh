@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -f /etc/profile.d/nvm.sh ]; then
+	. /etc/profile.d/nvm.sh
+fi
+
 WORKDIR="${PWD}"
 DOMAIN=""
 COOKIESTXT=""
@@ -9,7 +13,7 @@ FIRSTPARTY=(
 )
 MUSTVISIT=(
 )
-VISITPAGES="15"
+VISITPAGES="50"
 FPPARMS=""
 MVPARMS=""
 NOW=`date +%F_%H:%M`
@@ -28,17 +32,26 @@ if [ ! -d "${PROFILEDIR}" ]; then
 	mkdir -p "${PROFILEDIR}"
 fi
 
-/usr/lib/node_modules/website-evidence-collector/node_modules/puppeteer/.local-chromium/linux-*/chrome-linux/chrome --user-data-dir="${PROFILEDIR}" ${DOMAIN}
+nvm use 15 || exit 1
 
+~/git/website-evidence-collector/node_modules/puppeteer/.local-chromium/linux-*/chrome-linux/chrome \
+	--user-data-dir="${PROFILEDIR}" \
+	--no-first-run \
+	--no-default-browser-check \
+	--app=${DOMAIN} 
+#	--kiosk \
+
+echo "press any key to continue..."
+read
 
 set -x
 
-website-evidence-collector \
+#website-evidence-collector \
+node ~/git/website-evidence-collector/website-evidence-collector.js \
 	"${DOMAIN}" \
 	--quiet \
 	--html \
 	--overwrite \
-	--testssl \
 	--browser-profile="${PROFILEDIR}" \
 	${COOKIESTXT} \
 	${FPPARMS} \
@@ -46,7 +59,6 @@ website-evidence-collector \
 	-t "${TITLE}" \
 	-m ${VISITPAGES} \
 	--headless=false \
-	-F \
 	-- \
 	--no-sandbox \
 	> "${TITLE}-${NOW}.html"
