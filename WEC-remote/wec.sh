@@ -1,30 +1,31 @@
 #!/bin/bash
 
+#shellcheck disable=SC1091
+#shellcheck disable=SC2211
+
 if [ -f /etc/profile.d/nvm.sh ]; then
 	. /etc/profile.d/nvm.sh
 fi
 
 WORKDIR="${PWD}"
+NOW=$(date +%F_%H:%M)
 DOMAIN=""
 COOKIESTXT=""
 TITLE=""
-PROFILEDIR="${WORKDIR}/chromium-profile"
+PROFILEDIR="${WORKDIR}/chromium-profile-${NOW}-${TITLE}"
 FIRSTPARTY=(
 )
 MUSTVISIT=(
 )
 VISITPAGES="50"
-FPPARMS=""
-MVPARMS=""
-NOW=`date +%F_%H:%M`
 
 
-for m in ${MUSTVISIT[@]}; do
-	MVPARMS+=" -l ${m}"
+for m in "${!MUSTVISIT[@]}"; do
+	MUSTVISIT[$m]="-l ${MUSTVISIT[$m]}"
 done
 
-for d in ${FIRSTPARTY[@]}; do
-	FPPARMS+=" -f ${d}"
+for d in "${!FIRSTPARTY[@]}"; do
+	FIRSTPARTY[$d]="-f ${FIRSTPARTY[$d]}"
 done
 
 # browser profile setup
@@ -38,24 +39,25 @@ nvm use 15 || exit 1
 	--user-data-dir="${PROFILEDIR}" \
 	--no-first-run \
 	--no-default-browser-check \
-	--app=${DOMAIN} 
+	--no-sandbox \
+	"${DOMAIN}" 
+#	--app="${DOMAIN}" 
 #	--kiosk \
 
 echo "press any key to continue..."
-read
+read -r
 
 set -x
 
 #website-evidence-collector \
-node ~/git/website-evidence-collector/website-evidence-collector.js \
+node ~/git/website-evidence-collector/bin/website-evidence-collector.js \
 	"${DOMAIN}" \
-	--quiet \
 	--html \
 	--overwrite \
 	--browser-profile="${PROFILEDIR}" \
-	${COOKIESTXT} \
-	${FPPARMS} \
-	${MVPARMS} \
+	"${COOKIESTXT}" \
+	"${FIRSTPARTY[@]}" \
+	"${MUSTVISIT[@]}" \
 	-t "${TITLE}" \
 	-m ${VISITPAGES} \
 	--headless=false \
